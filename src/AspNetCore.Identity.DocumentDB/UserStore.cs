@@ -29,6 +29,10 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             IUserTwoFactorStore<TUser>,
             IUserLockoutStore<TUser>,
             IQueryableUserStore<TUser>,
+#if NETSTANDARD2_0
+            IUserAuthenticatorKeyStore<TUser>,
+            IUserTwoFactorRecoveryCodeStore<TUser>,
+#endif
             IUserAuthenticationTokenStore<TUser>
         where TUser : IdentityUser
     {
@@ -449,5 +453,29 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         {
             return Helper.GetFeedOptions(UsesPartitioning ? partitionKeyValue : null, options);
         }
+#if NETSTANDARD2_0
+        public Task SetAuthenticatorKeyAsync( TUser user, string key, CancellationToken cancellationToken ) {
+            user.TwoFactorAuthenticatorKey = key;
+            return Task.CompletedTask;
+        }
+
+        public Task<string> GetAuthenticatorKeyAsync( TUser user, CancellationToken cancellationToken ) {
+
+            return Task.FromResult( user.TwoFactorAuthenticatorKey );
+        }
+
+        public Task ReplaceCodesAsync( TUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken ) {
+            user.TwoFactorRecoveryCodes = new List<string>( recoveryCodes );
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> RedeemCodeAsync( TUser user, string code, CancellationToken cancellationToken ) {
+            return Task.FromResult( user.TwoFactorRecoveryCodes.Remove( code ) );
+        }
+
+        public Task<int> CountCodesAsync( TUser user, CancellationToken cancellationToken ) {
+            return Task.FromResult( user.TwoFactorRecoveryCodes?.Count ?? 0 );
+        }
+#endif
     }
 }

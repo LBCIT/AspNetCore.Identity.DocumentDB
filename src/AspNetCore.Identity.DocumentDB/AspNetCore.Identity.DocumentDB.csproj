@@ -42,4 +42,10 @@ The API remains the same but the data model has changed and the library is thus 
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.1.3" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.Identity.Core">
+      <Version>2.1.3</Version>
+    </PackageReference>
+  </ItemGroup>
+
 </Project>

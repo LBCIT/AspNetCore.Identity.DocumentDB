@@ -58,6 +58,12 @@
         [JsonProperty(PropertyName = "twoFactorEnabled")]
         public virtual bool TwoFactorEnabled { get; set; }
 
+        [JsonProperty( PropertyName = "twoFactorAuthenticatorKey" )]
+        public virtual string TwoFactorAuthenticatorKey { get; set; }
+
+        [JsonProperty( PropertyName = "twoFactorRecoveryCodes" )]
+        public virtual List<string> TwoFactorRecoveryCodes { get; set; }
+
         [JsonProperty(PropertyName = "lockoutEndDateUtc")]
         public virtual DateTime? LockoutEndDateUtc { get; set; }
 
