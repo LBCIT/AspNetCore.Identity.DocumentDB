@@ -104,7 +104,7 @@
 
         public virtual bool HasPassword()
         {
-            return false;
+            return PasswordHash != null;
         }
         
         [JsonProperty(PropertyName = "tokens", NullValueHandling = NullValueHandling.Ignore)]
