@@ -89,7 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="collectionFactory">Function containing DocumentCollection</param>
         public static IdentityBuilder RegisterDocumentDBStores(
             this IdentityBuilder builder,
-            DocumentClient documentClient,
+            IDocumentClient documentClient,
             Func<IServiceProvider, DocumentCollection> collectionFactory)
         {
             return RegisterDocumentDBStores<IdentityUser, IdentityRole>(builder, documentClient, collectionFactory);
@@ -106,7 +106,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="collectionFactory">Function containing DocumentCollection</param>
         public static IdentityBuilder RegisterDocumentDBStores<TUser, TRole>(
             this IdentityBuilder builder,
-            DocumentClient documentClient,
+            IDocumentClient documentClient,
             Func<IServiceProvider, DocumentCollection> collectionFactory)
             where TRole : IdentityRole
             where TUser : IdentityUser
@@ -181,7 +181,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The <see cref="IdentityBuilder"/> with the DocumentDB settings applied.</returns>
         public static IdentityBuilder AddIdentityWithDocumentDBStores<TUser, TRole>(
             this IServiceCollection service,
-            DocumentClient documentClient,
+            IDocumentClient documentClient,
             Func<IServiceProvider, DocumentCollection> collectionFactory,
             Action<IdentityOptions> identityOptions = null)
             where TUser : IdentityUser

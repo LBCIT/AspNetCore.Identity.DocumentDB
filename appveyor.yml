@@ -9,7 +9,7 @@
   configuration:
   - Release
   image: Visual Studio 2017
-  platform: x64
+  platform: Any CPU
   environment:
     # Don't report back to the mothership
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -26,11 +26,13 @@
   - ps: $VersionSuffixPlain = $VersionSuffix.TrimStart("-")
   - ps: $NewBuildVersion = "${DotnetVersionPrefix}" + "$VersionSuffix"
   - ps: Update-AppveyorBuild -Version $NewBuildVersion
-  # Install DocumentDB Emulator
-  - ps: Start-FileDownload 'https://aka.ms/cosmosdb-emulator' -FileName 'C:\DocumentDB.Emulator.msi'
-  - msiexec.exe /i C:\DocumentDB.Emulator.msi /quiet /qn /log install.log
+  # Install Cosmos DB Emulator
+  - wmic product where name="Azure Cosmos DB Emulator" call uninstall
+  - ps: Start-FileDownload 'https://aka.ms/cosmosdb-emulator' -FileName 'C:\CosmosDB.Emulator.msi'
+  - msiexec.exe /i C:\CosmosDB.Emulator.msi /quiet /qn /log install.log
+  - ps: Get-Content install.log
   - ps: >-
-      & "${env:ProgramFiles}\DocumentDB Emulator\DocumentDB.Emulator.exe"
+      & "${env:ProgramFiles}\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe"
 
   before_build:
   - ps: >-

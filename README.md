@@ -4,6 +4,7 @@
 This is a DocumentDB provider for the ASP.NET Core Identity framework. This was ported from the MongoDB ASP.NET Core Identity framework (Microsoft.AspNetCore.Identity.MongoDB NuGet package) by g0t4.
 
 It's fully compatible with ASP.NET Core 1.0 & 2.0 and can also be used within standard .NET Framework projects.
+There is also support for partitioned collections (currently in beta).
 
 ## Usage
 
@@ -15,7 +16,7 @@ dotnet add package AspNetCore.Identity.DocumentDB
 Register the Identity service with DocumentDB stores. Usually in the ConfigureServices method within your Startup.cs:
 
 ```csharp
-services.AddIdentityWithDocumentDBStores(documentClient, databaseLink);
+services.AddIdentityWithDocumentDBStores(documentClient, (p) => collection);
 ```
 No need to call `services.AddIdentity()` before; this is already included in the code above.
 
@@ -38,17 +39,21 @@ There are a few different ways to register the DocumentDB stores that allow for 
 Register DocumentDB Stores separately from the AddIdentity() call:
 ```csharp
 services.AddIdentity<IdentityUser, IdentityRole>()
-		.RegisterDocumentDBStores<IdentityUser, IdentityRole>(documentClient, databaseLink);
+		.RegisterDocumentDBStores<IdentityUser, IdentityRole>(documentClient, (p) => collection);
 ```
 If you do this make sure the provided `IdentityUser` and `IdentityRole` classes are matching.
 
-Instead of providing a DocumentClient & database link you can also use DocumentDbOptions and optionally IdentityOptions to allow for as much customization as possible:
+Instead of providing a DocumentClient & DocumentCollection you can also use DocumentDbOptions and optionally IdentityOptions to allow for as much customization as possible:
 ```csharp
 services.AddIdentityWithDocumentDBStores<IdentityUser, IdentityRole>(
 	dbOptions => {
 		dbOptions.DocumentUrl = "...";
 		dbOptions.DocumentKey = "...";
+		dbOptions.DatabaseId = "...";
 		dbOptions.CollectionId = "...";
+
+                // optional:
+		// dbOptions.PartitionKey = [provide definition here];
 	},
 	identityOptions => {
 		identityOptions.User.RequireUniqueEmail = true;
@@ -72,15 +77,38 @@ Have a look into the `samples` folder in the repository.
 What frameworks are targeted, with rationale:
 
 - Microsoft.AspNetCore.Identity - supports net451 and netstandard1.3
-- Microsoft.Azure.DocumentDB v1.10.0 - supports net45
-- Microsoft.Azure.DocumentDB v1.21.0 - supports netstandard1.6
+- Microsoft.Azure.DocumentDB v2.0.0 - supports net45
+- Microsoft.Azure.DocumentDB.Core v2.0.0 - supports netstandard1.6
 - Thus, the lowest common denominators are net451 and netstandard1.6
-
-For support for the now deprecated `Microsoft.Azure.DocumentDB.Core` package you can still use v1.0.0.
 
 Additionally this projects targets netstandard2.0 explicitly due to its incompaibility with older versions of Microsoft.AspNetCore.Identity.
 For netstandard2.0 Microsoft.AspNetCore.Identity v2.0 is required.
 
+### ASP.NET Core Identity interfaces
+
+This table serves as a quick overview of which interfaces are implemented from the ASP.NET Core Identity framework:
+
+| Feature                       | without partitioning | with partitioning |
+|-------------------------------|:--------------------:|:-----------------:|
+| **IUserStore**                |           x          |         x         |
+| IQueryableUserStore           |           x          |         x*        |
+| IUserPasswordStore            |           x          |         x         |
+| IUserRoleStore                |           x          |         x         |
+| IUserLoginStore               |           x          |         -         |
+| IUserSecurityStampStore       |           x          |         x         |
+| IUserEmailStore               |           x          |         x         |
+| IUserClaimStore               |           x          |         x         |
+| IUserPhoneNumberStore         |           x          |         x         |
+| IUserTwoFactorStore           |           x          |         x         |
+| IUserLockoutStore             |           x          |         x         |
+| IUserAuthenticationTokenStore |           x          |         x         |
+| **IRoleStore**                |           x          |         x         |
+| IQueryableRoleStore           |           x          |         x*        |
+| IRoleClaimStore               |           x          |         x         |
+
+*= The "Users" & "Roles" properties of the queryable stores are supported for partitioned collection but accessing them will cause a cross-partition query which is generally not recommended due to the high costs & performance.
+Avoid them when possible.
+
 ## Building instructions
 
-run commands in [](build.sh)
+run commands in [build.sh](build.sh)

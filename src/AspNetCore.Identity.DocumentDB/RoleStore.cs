@@ -24,11 +24,11 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
     public class RoleStore<TRole> : IQueryableRoleStore<TRole>, IRoleClaimStore<TRole>
         where TRole : IdentityRole
     {
-        private readonly DocumentClient _Client;
+        private readonly IDocumentClient _Client;
         private readonly DocumentCollection _Roles;
         private readonly bool UsesPartitioning;
 
-        public RoleStore(DocumentClient documentClient, DocumentCollection roles)
+        public RoleStore(IDocumentClient documentClient, DocumentCollection roles)
         {
             _Client = documentClient;
             _Roles = roles;

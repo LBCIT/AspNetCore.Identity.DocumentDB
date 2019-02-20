@@ -36,11 +36,11 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             IUserAuthenticationTokenStore<TUser>
         where TUser : IdentityUser
     {
-        private readonly DocumentClient _Client;
+        private readonly IDocumentClient _Client;
         private readonly DocumentCollection _Users; // DocumentCollection of TUser
         private readonly bool UsesPartitioning;
 
-        public UserStore(DocumentClient documentClient, DocumentCollection users) // DocumentCollection of TUser
+        public UserStore(IDocumentClient documentClient, DocumentCollection users) // DocumentCollection of TUser
         {
             _Client = documentClient;
             _Users = users;
@@ -68,8 +68,8 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
 
             if (UsesPartitioning)
             {
-                await CreateMapping(user.NormalizedUserName, user.UserId);
-                await CreateMapping(user.NormalizedEmail, user.UserId);
+                await CreateMapping(user.NormalizedUserName, user.UserId, TypeEnum.UserMappingUsername);
+                await CreateMapping(user.NormalizedEmail, user.UserId, TypeEnum.UserMappingEmail);
             }
 
             return IdentityResult.Success;
@@ -83,14 +83,14 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             {
                 if (oldUser.NormalizedUserName != user.NormalizedUserName)
                 {
-                    await DeleteMapping(oldUser.NormalizedUserName);
-                    await CreateMapping(user.NormalizedUserName, user.UserId);
+                    await DeleteMapping(oldUser.NormalizedUserName, TypeEnum.UserMappingUsername);
+                    await CreateMapping(user.NormalizedUserName, user.UserId, TypeEnum.UserMappingUsername);
                 }
 
                 if (oldUser.NormalizedEmail != user.NormalizedEmail)
                 {
-                    await DeleteMapping(oldUser.NormalizedEmail);
-                    await CreateMapping(user.NormalizedEmail, user.UserId);
+                    await DeleteMapping(oldUser.NormalizedEmail, TypeEnum.UserMappingEmail);
+                    await CreateMapping(user.NormalizedEmail, user.UserId, TypeEnum.UserMappingEmail);
                 }
             }
 
@@ -104,8 +104,8 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         {
             if (UsesPartitioning)
             {
-                await DeleteMapping(user.NormalizedUserName);
-                await DeleteMapping(user.NormalizedEmail);
+                await DeleteMapping(user.NormalizedUserName, TypeEnum.UserMappingUsername);
+                await DeleteMapping(user.NormalizedEmail, TypeEnum.UserMappingEmail);
                 /*await Task.WhenAll(user.Logins.Select((login) =>
                 {
                     var partitionKey = login.LoginProvider + login.ProviderKey;
@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             if (UsesPartitioning)
             {
                 var partitionKeyMapping = _Client.CreateDocumentQuery<PartitionMapping>(_Users.DocumentsLink, GetFeedOptions(normalizedUserName))
-                    .Where(u => u.Id == TypeEnum.UserMapping).AsEnumerable().FirstOrDefault();
+                    .Where(u => u.Id == TypeEnum.UserMappingUsername).AsEnumerable().FirstOrDefault();
 
                 return partitionKeyMapping != null ?
                     _Client.CreateDocumentQuery<TUser>(_Users.DocumentsLink, GetFeedOptions(partitionKeyMapping.TargetId))
@@ -267,7 +267,7 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             if (UsesPartitioning)
             {
                 var partitionKeyMapping = _Client.CreateDocumentQuery<PartitionMapping>(_Users.DocumentsLink, GetFeedOptions(normalizedEmail))
-                    .Where(u => u.Id == TypeEnum.UserMapping).AsEnumerable().FirstOrDefault();
+                    .Where(u => u.Id == TypeEnum.UserMappingEmail).AsEnumerable().FirstOrDefault();
 
                 return partitionKeyMapping != null ?
                     _Client.CreateDocumentQuery<TUser>(_Users.DocumentsLink, GetFeedOptions(partitionKeyMapping.TargetId))
@@ -422,24 +422,29 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             return string.Format("{0}/docs/{1}", _Users.AltLink, id);
         }
 
-        private async Task CreateMapping(string id, string targetId)
+        private async Task CreateMapping(string id, string targetId, TypeEnum userMappingType)
         {
             // don't create mappings for null ID
             if (id == null) return;
 
+            if (userMappingType != TypeEnum.UserMappingEmail && userMappingType != TypeEnum.UserMappingUsername)
+            {
+                throw new NotImplementedException($"No support for creating mappings for type {userMappingType}");
+            }
+
             await _Client.CreateDocumentAsync(_Users.DocumentsLink, new PartitionMapping
             {
                 PartitionKey = id,
-                Id = TypeEnum.UserMapping,
+                Id = userMappingType,
                 TargetId = targetId
             });
         }
 
-        private async Task DeleteMapping(string id)
+        private async Task DeleteMapping(string id, TypeEnum userMappingType)
         {
             if (id != null)
             {
-                var typeString = Helper.GetEnumMemberValue(TypeEnum.UserMapping);
+                var typeString = Helper.GetEnumMemberValue(userMappingType);
                 await _Client.DeleteDocumentAsync(GetUserUri(typeString), GetRequestOptions(id));
             }
         }

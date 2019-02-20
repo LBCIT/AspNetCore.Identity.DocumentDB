@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         public string PartitionKey { get; set; }
 
         [JsonProperty("id")]
-        public TypeEnum Id { get; set; }
+        public new TypeEnum Id { get; set; }
 
         [JsonProperty("type")]
         private TypeEnum Type => Id;

@@ -20,7 +20,9 @@ namespace CoreIntegrationTests
             Paths = new Collection<string> { "/partition" }
         };
 
-        private readonly string userMappingStr = Helper.GetEnumMemberValue(TypeEnum.UserMapping);
+        private readonly string userMappingEmailStr = Helper.GetEnumMemberValue(TypeEnum.UserMappingEmail);
+
+        private readonly string userMappingUsernameStr = Helper.GetEnumMemberValue(TypeEnum.UserMappingUsername);
 
         private readonly string roleMappingStr = Helper.GetEnumMemberValue(TypeEnum.RoleMapping);
 
@@ -48,14 +50,14 @@ namespace CoreIntegrationTests
             var dbUser1 = (IdentityUser)(dynamic)results[0];
             Assert.Equal(user1.Id, dbUser1.Id);
             var mappingUsername1 = (dynamic)results[1];
-            Assert.Equal(userMappingStr, mappingUsername1.Id);
+            Assert.Equal(userMappingUsernameStr, mappingUsername1.Id);
             Assert.Equal(dbUser1.NormalizedUserName, mappingUsername1.partition);
             Assert.Equal(dbUser1.Id, mappingUsername1.targetId);
 
             var dbUser2 = (IdentityUser)(dynamic)results[2];
             Assert.Equal(user2.Id, dbUser2.Id);
             var mappingUsername2 = (dynamic)results[3];
-            Assert.Equal(userMappingStr, mappingUsername2.Id);
+            Assert.Equal(userMappingUsernameStr, mappingUsername2.Id);
             Assert.Equal(dbUser2.NormalizedUserName, mappingUsername2.partition);
             Assert.Equal(dbUser2.Id, mappingUsername2.targetId);
 
@@ -82,22 +84,22 @@ namespace CoreIntegrationTests
             var dbUser1 = (IdentityUser)(dynamic)results[0];
             Assert.Equal(user1.Id, dbUser1.Id);
             var mappingUsername1 = (dynamic)results[1];
-            Assert.Equal(userMappingStr, mappingUsername1.Id);
+            Assert.Equal(userMappingUsernameStr, mappingUsername1.Id);
             Assert.Equal(dbUser1.NormalizedUserName, mappingUsername1.partition);
             Assert.Equal(dbUser1.Id, mappingUsername1.targetId);
             var mappingEmail1 = (dynamic)results[2];
-            Assert.Equal(userMappingStr, mappingEmail1.Id);
+            Assert.Equal(userMappingEmailStr, mappingEmail1.Id);
             Assert.Equal(dbUser1.NormalizedEmail, mappingEmail1.partition);
             Assert.Equal(dbUser1.Id, mappingEmail1.targetId);
 
             var dbUser2 = (IdentityUser)(dynamic)results[3];
             Assert.Equal(user2.Id, dbUser2.Id);
             var mappingUsername2 = (dynamic)results[4];
-            Assert.Equal(userMappingStr, mappingUsername2.Id);
+            Assert.Equal(userMappingUsernameStr, mappingUsername2.Id);
             Assert.Equal(dbUser2.NormalizedUserName, mappingUsername2.partition);
             Assert.Equal(dbUser2.Id, mappingUsername2.targetId);
             var mappingEmail2 = (dynamic)results[5];
-            Assert.Equal(userMappingStr, mappingEmail2.Id);
+            Assert.Equal(userMappingEmailStr, mappingEmail2.Id);
             Assert.Equal(dbUser2.NormalizedEmail, mappingEmail2.partition);
             Assert.Equal(dbUser2.Id, mappingEmail2.targetId);
 

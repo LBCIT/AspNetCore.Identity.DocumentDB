@@ -1,24 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>A DocumentDB (Cosmos DB) provider for ASP.NET Core Identity framework.</Description>
-    <VersionPrefix>2.0.0-beta2</VersionPrefix>
+    <Description>A DocumentDB (Cosmos DB) provider for ASP.NET Core Identity framework with support for partitioning.</Description>
+    <VersionPrefix>2.0.0-beta6</VersionPrefix>
     <Authors>Felix Schröter</Authors>
     <TargetFrameworks>net451;netstandard1.6;netstandard2.0</TargetFrameworks>
     <WarningsAsErrors>true</WarningsAsErrors>
     <AssemblyName>AspNetCore.Identity.DocumentDB</AssemblyName>
     <PackageId>AspNetCore.Identity.DocumentDB</PackageId>
-    <PackageTags>AspNetCore;Azure;CosmosDB;DocumentDB;identity;membership</PackageTags>
-    <PackageReleaseNotes>The document IDs are now set to "user" and "role" instead of using the same value as in the partition key.
-
-The C# IdentityUser and IdentityRole classes still have a single public Id property which returns either the document ID or the partition key depending on whether the collection is partitioned.
-The API remains the same but the data model has changed and the library is thus not compatible with 2.0.0-beta datasets.
+    <PackageTags>AspNetCore;Azure;CosmosDB;DocumentDB;identity;membership;partitioning</PackageTags>
+    <PackageReleaseNotes>- add 32 bit support via "Any CPU" platform target
+- update minimum dependency versions for security
     </PackageReleaseNotes>
     <PackageIconUrl>https://raw.githubusercontent.com/FelschR/AspNetCore.Identity.DocumentDB/netcore/imgs/icon.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/FelschR/AspNetCore.Identity.DocumentDB</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/FelschR/AspNetCore.Identity.DocumentDB/blob/netcore/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/FelschR/AspNetCore.Identity.DocumentDB</RepositoryUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -27,7 +26,7 @@ The API remains the same but the data model has changed and the library is thus 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB" Version="1.10.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' OR '$(TargetFramework)' == 'netstandard2.0' ">
@@ -35,7 +34,7 @@ The API remains the same but the data model has changed and the library is thus 
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' OR '$(TargetFramework)' == 'netstandard1.6' ">
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="1.1.6" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">

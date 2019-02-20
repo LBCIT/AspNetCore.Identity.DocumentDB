@@ -10,8 +10,11 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         [EnumMember(Value = "user")]
         User,
 
-        [EnumMember(Value = "userMapping")]
-        UserMapping,
+        [EnumMember(Value = "userMappingUsername")]
+        UserMappingUsername,
+
+        [EnumMember(Value = "userMappingEmail")]
+        UserMappingEmail,
 
         [EnumMember(Value = "role")]
         Role,
