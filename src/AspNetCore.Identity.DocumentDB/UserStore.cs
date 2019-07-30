@@ -458,6 +458,18 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         {
             return Helper.GetFeedOptions(UsesPartitioning ? partitionKeyValue : null, options);
         }
+
+        private string GetLoginPartitionKey(UserLoginInfo login) {
+            return GetLoginPartitionKey(login.LoginProvider, login.ProviderKey);
+        }
+
+        private string GetLoginPartitionKey(IdentityUserLogin login) {
+            return GetLoginPartitionKey(login.LoginProvider, login.ProviderKey);
+        }
+
+        private string GetLoginPartitionKey(string loginProvider, string providerKey) {
+            return loginProvider + providerKey;
+        }
 #if NETSTANDARD2_0
         public Task SetAuthenticatorKeyAsync( TUser user, string key, CancellationToken cancellationToken ) {
             user.TwoFactorAuthenticatorKey = key;
