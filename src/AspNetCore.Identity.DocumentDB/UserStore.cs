@@ -70,6 +70,10 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             {
                 await CreateMapping(user.NormalizedUserName, user.UserId, TypeEnum.UserMappingUsername);
                 await CreateMapping(user.NormalizedEmail, user.UserId, TypeEnum.UserMappingEmail);
+                await Task.WhenAll(user.Logins.Select((login) =>
+                {
+                    return CreateMapping(GetLoginPartitionKey(login), user.UserId, TypeEnum.UserMappingExternalProvider);
+                }));
             }
 
             return IdentityResult.Success;
@@ -92,6 +96,21 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
                     await DeleteMapping(oldUser.NormalizedEmail, TypeEnum.UserMappingEmail);
                     await CreateMapping(user.NormalizedEmail, user.UserId, TypeEnum.UserMappingEmail);
                 }
+
+                //Check if the old user has a login that doesn't exist in the new one and remove it if so
+                foreach(var login in oldUser.Logins) {
+                    if (!user.Logins.Any(ul => ul.LoginProvider == login.LoginProvider && ul.ProviderKey == login.ProviderKey ) ) {
+                        await DeleteMapping(GetLoginPartitionKey(login), TypeEnum.UserMappingExternalProvider);
+                    }
+                }
+                //Check if the new user has a login that doesn't exist in the old user and create it if so
+                foreach (var login in user.Logins)
+                {
+                    if (!oldUser.Logins.Any(ul => ul.LoginProvider == login.LoginProvider && ul.ProviderKey == login.ProviderKey))
+                    {
+                        await CreateMapping(GetLoginPartitionKey(login), user.UserId, TypeEnum.UserMappingExternalProvider);
+                    }
+                }
             }
 
             // todo should add an optimistic concurrency check
@@ -106,11 +125,10 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             {
                 await DeleteMapping(user.NormalizedUserName, TypeEnum.UserMappingUsername);
                 await DeleteMapping(user.NormalizedEmail, TypeEnum.UserMappingEmail);
-                /*await Task.WhenAll(user.Logins.Select((login) =>
+                await Task.WhenAll(user.Logins.Select((login) =>
                 {
-                    var partitionKey = login.LoginProvider + login.ProviderKey;
-                    return DeleteMapping(partitionKey);
-                }));*/
+                    return DeleteMapping(GetLoginPartitionKey(login), TypeEnum.UserMappingExternalProvider);
+                }));
             }
             await _Client.DeleteDocumentAsync(GetUserUri(user), GetRequestOptions(user.UserId));
 
@@ -207,7 +225,7 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         {
             if (UsesPartitioning)
             {
-                throw new NotImplementedException("FindByLogin is not yet supported for partitioned collections.");
+                //throw new NotImplementedException("FindByLogin is not yet supported for partitioned collections.");
 
                 /* TODO: I have an idea for implementing this with paritioning support:
                  * We need to store the logins as separate documents with their loginProvier + providerKey as partition key
@@ -218,19 +236,18 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
                  * When returning the IdentityUser we always need to query the assigned logins as well.
                  * IdentityUser: Create private Logins with IDs and JsonProperty and public Logins with actual Login objects and JsonIgnore.
                  * 
-                 * Remember to also adjust the CreateAsync, UpdateAsync, DeleteAsync & AddLoginAsync methods.
-                 * /
+                 * Remember to also adjust the CreateAsync, UpdateAsync, DeleteAsync, AddLoginAsync & RemoveLoginAsync methods.
+                 */
 
-                /*
-                var partitionKey = loginProvider + providerKey;
-                var partitionKeyMapping = _Client.CreateDocumentQuery<PartitionMapping>(_Users.DocumentsLink, GetFeedOptions(partitionKey))
-                    .Where(m => m.Id == partitionKey)
-                    .ToList().FirstOrDefault();
+                
+                var partitionKey = GetLoginPartitionKey(loginProvider, providerKey);
+                var partitionKeyMapping = _Client.CreateDocumentQuery<PartitionMapping>( _Users.DocumentsLink, GetFeedOptions( partitionKey ) )
+                    .Where( u => u.Id == TypeEnum.UserMappingExternalProvider ).AsEnumerable().FirstOrDefault();
 
-                return _Client.CreateDocumentQuery<TUser>(_Users.DocumentsLink, GetFeedOptions(partitionKeyMapping.TargetId))
-                    .SelectMany(u => u.Logins.Where(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey).Select(u2 => u))
-                    .ToList().FirstOrDefault();
-                */
+                return partitionKeyMapping != null ?
+                    _Client.CreateDocumentQuery<TUser>( _Users.DocumentsLink, GetFeedOptions( partitionKeyMapping.TargetId ) )
+                    .SelectMany( u => u.Logins.Where( l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey ).Select( u2 => u ) )
+                    .ToList().FirstOrDefault() : null;
             }
 
             return _Client.CreateDocumentQuery<TUser>(_Users.DocumentsLink)
