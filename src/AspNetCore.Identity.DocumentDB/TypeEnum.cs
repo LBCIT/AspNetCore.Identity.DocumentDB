@@ -16,6 +16,9 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
         [EnumMember(Value = "userMappingEmail")]
         UserMappingEmail,
 
+        [EnumMember( Value = "userMappingExternalProvider" )]
+        UserMappingExternalProvider,
+
         [EnumMember(Value = "role")]
         Role,
 

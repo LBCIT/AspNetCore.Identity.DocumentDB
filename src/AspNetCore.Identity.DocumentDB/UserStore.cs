@@ -427,7 +427,7 @@ namespace Microsoft.AspNetCore.Identity.DocumentDB
             // don't create mappings for null ID
             if (id == null) return;
 
-            if (userMappingType != TypeEnum.UserMappingEmail && userMappingType != TypeEnum.UserMappingUsername)
+            if (userMappingType != TypeEnum.UserMappingEmail && userMappingType != TypeEnum.UserMappingUsername && userMappingType != TypeEnum.UserMappingExternalProvider)
             {
                 throw new NotImplementedException($"No support for creating mappings for type {userMappingType}");
             }
